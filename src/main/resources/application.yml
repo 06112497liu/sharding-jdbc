@@ -1,0 +1,11 @@
+server:
+  port: 8080
+spring:
+  jackson:
+    default-property-inclusion: non_null
+    date-format: yyyy-MM-dd HH:mm
+  profiles:
+    active: @profileActive@
+  devtools:
+    restart:
+      enabled: false # 关掉热启动
