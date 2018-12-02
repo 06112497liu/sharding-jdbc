@@ -1,0 +1,45 @@
+sharding:
+  jdbc:
+    config:
+      sharding:
+        props:
+          sql.show: true
+        default-data-source-name: ds0 # 未配置分片策略的表，默认使用ds0数据源
+        default-database-strategy:
+          inline:
+            sharding-column: user_id # 分库策略所用到的字段，如果没有sql没有这个字段，使用默认的库ds0。否则，用该字段进行分库策略的计算
+            algorithm-expression: ds$->{user_id % 2} # 分库策略
+
+        # 分库分片的表
+        tables:
+          t_order.actual-data-nodes: ds$->{0..1}.t_order$->{0..1} # t_order 为逻辑表名，实际的数据节点名称（数据源名 + 表名），这里用到了inline表达式
+          t_order.table-strategy.inline.sharding-column: order_id # t_order 表的分片字段名称
+          t_order.table-strategy.inline.algorithm-expression: t_order$->{order_id % 2} # 分片inline表达式，这里的规则使用order_id % 2
+          t_order.key-generator-column-name: order_id # 主键列名，sharding-jdbc默认使用雪花算法为该字段生成默认主键
+
+          t_order_item.actual-data-nodes: ds$->{0..1}.t_order_item$->{0..1}
+          t_order_item.table-strategy.inline.sharding-column: order_id
+          t_order_item.table-strategy.inline.algorithm-expression: t_order_item$->{order_id % 2}
+          t_order_item.key-generator-column-name: order_item_id
+
+    datasource:
+      names: ds0,ds1 # 数据源名称
+      ds0.type: com.alibaba.druid.pool.DruidDataSource
+      ds0.driver-class-name: com.mysql.jdbc.Driver
+      ds0.url: jdbc:mysql://localhost:3306/ds0?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&useSSL=false&allowMultiQueries=true
+      ds0.username: root
+      ds0.password: 123456
+
+      # ds0数据库连接池配置
+      ds0.initial-size: 6
+      ds0.max-active: 20
+      ds0.min-idle: 6
+      ds0.max-wait: 60000
+      ds0.pool-prepared-statements: true
+      ds0.max-pool-prepared-statement-per-connection-size: 20
+
+      ds1.type: com.alibaba.druid.pool.DruidDataSource
+      ds1.driver-class-name: com.mysql.jdbc.Driver
+      ds1.url: jdbc:mysql://localhost:3306/ds1?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&useSSL=false&allowMultiQueries=true
+      ds1.username: root
+      ds1.password: 123456

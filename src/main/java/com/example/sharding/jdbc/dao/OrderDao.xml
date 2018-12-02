@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.sharding.jdbc.dao.OrderDao">
+
+    <resultMap id="baseMap" type="com.example.sharding.jdbc.vo.OrderVo">
+        <id property="orderId" column="orderId"/>
+        <result property="userId" column="userId"/>
+        <collection property="items" javaType="java.util.List" ofType="com.example.sharding.jdbc.vo.OrderItemVo">
+            <id property="orderItemId" column="orderItemId"/>
+            <result property="orderId" column="relOrderId"/>
+            <result property="productName" column="productName"/>
+        </collection>
+    </resultMap>
+
+    <!-- 根据订单id查询一条订单详情 -->
+    <select id="getOrderInfo" resultMap="baseMap">
+        SELECT
+        a.order_id      AS orderId,
+        a.user_id       AS userId,
+        b.order_item_id AS orderItemId,
+        b.order_id      AS relOrderId,
+        b.product_name  AS productName
+        FROM
+        t_order a LEFT JOIN t_order_item b USING (order_id)
+        WHERE a.order_id = #{orderId}
+    </select>
+</mapper>
